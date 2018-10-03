@@ -9,7 +9,7 @@ class FunLanguageVisitor : FunLanguageBaseVisitor<AstNode>() {
     }
 
     override fun visitBlock(ctx: FunLanguageParser.BlockContext): Block {
-        return Block(ctx.statement().map { statementContext ->  statementContext.accept(this) as Statement })
+        return Block(ctx.statement().map { statementContext -> statementContext.accept(this) as Statement })
     }
 
     override fun visitFunction(ctx: FunLanguageParser.FunctionContext): Function {
@@ -108,7 +108,7 @@ class FunLanguageVisitor : FunLanguageBaseVisitor<AstNode>() {
 
     companion object {
         private fun getOperator(operator: String): BinaryOperator {
-            return when(operator) {
+            return when (operator) {
                 "+" -> BinaryOperator.PLUS
                 "-" -> BinaryOperator.MINUS
                 "&&" -> BinaryOperator.AND

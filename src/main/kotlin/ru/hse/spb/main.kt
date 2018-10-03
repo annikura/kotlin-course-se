@@ -11,29 +11,33 @@ fun main(args: Array<String>) {
 
 class LexerErrorListener : BaseErrorListener() {
     override fun syntaxError(
-            recognizer: Recognizer<*, *>?,
-            offendingSymbol: Any?, line: Int,
-            charPositionInLine: Int, msg: String?,
-            e: RecognitionException?) {
+        recognizer: Recognizer<*, *>?,
+        offendingSymbol: Any?,
+        line: Int,
+        charPositionInLine: Int,
+        msg: String?,
+        e: RecognitionException?
+    ) {
         throw ParsingException("$line::lexer error")
     }
 }
 
 class ParserErrorListener : BaseErrorListener() {
     override fun syntaxError(
-            recognizer: Recognizer<*, *>?,
-            offendingSymbol: Any?,
-            line: Int,
-            charPositionInLine: Int,
-            msg: String?,
-            e: RecognitionException?) {
+        recognizer: Recognizer<*, *>?,
+        offendingSymbol: Any?,
+        line: Int,
+        charPositionInLine: Int,
+        msg: String?,
+        e: RecognitionException?
+    ) {
         throw ParsingException("$line::parser error")
     }
 }
 
 class ParsingException(override var message: String) : Exception(message)
 
-fun parseFunLanguageFile(funCode: String) : File {
+fun parseFunLanguageFile(funCode: String): File {
     val funLanguageLexer = FunLanguageLexer(CharStreams.fromString(funCode))
     val funLanguageParser = FunLanguageParser(BufferedTokenStream(funLanguageLexer))
     funLanguageLexer.removeErrorListeners()
