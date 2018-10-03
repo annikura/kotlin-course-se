@@ -303,4 +303,74 @@ class TestSource {
         val stringStream = ByteArrayOutputStream()
         parseFunLanguageFile("fun a(x, y) {}\n a(1, 2, 3)").exec(Context(stringStream))
     }
+
+    @Test
+    fun executing_functionNameShadowing() {
+        val stringStream = ByteArrayOutputStream()
+        parseFunLanguageFile("fun a() { fun a() {println(10)} \n a()} a()").exec(Context(stringStream))
+        assertEquals("10 \n", stringStream.toString())
+    }
+
+    @Test
+    fun executing_variableNameShadowing() {
+        val stringStream = ByteArrayOutputStream()
+        parseFunLanguageFile("var x = 10\n fun a() { var x = 6 \n println(x)} a()\n println(x)")
+                .exec(Context(stringStream))
+        assertEquals("6 \n10 \n", stringStream.toString())
+    }
+
+    @Test
+    fun execution_simpleTest1() {
+        val stringStream = ByteArrayOutputStream()
+
+        parseFunLanguageFile("""
+            var a = 10
+            var b = 20
+            if (a > b) {
+                println(1)
+            } else {
+                println(0)
+            }
+        """).exec(Context(stringStream))
+        assertEquals("0 \n", stringStream.toString())
+    }
+
+    @Test
+    fun execution_simpleTest2() {
+        val stringStream = ByteArrayOutputStream()
+
+        parseFunLanguageFile("""
+            fun fib(n) {
+                if (n <= 1) {
+                    return 1
+                }
+                return fib(n - 1) + fib(n - 2)
+            }
+
+            var i = 1
+            while (i <= 5) {
+                println(i, fib(i))
+                i = i + 1
+            }
+        """).exec(Context(stringStream))
+        assertEquals("1 1 \n2 2 \n3 3 \n4 5 \n5 8 \n", stringStream.toString())
+    }
+
+    @Test
+    fun execution_simpleTest3() {
+        val stringStream = ByteArrayOutputStream()
+
+        parseFunLanguageFile("""
+            fun foo(n) {
+                fun bar(m) {
+                    return m + n
+                }
+
+                return bar(1)
+            }
+
+            println(foo(41)) // prints 42
+        """).exec(Context(stringStream))
+        assertEquals("42 \n", stringStream.toString())
+    }
 }

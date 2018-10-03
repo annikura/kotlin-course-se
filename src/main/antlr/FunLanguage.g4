@@ -93,5 +93,8 @@ LITERAL
     | [1-9][0-9]*
     ;
 WS
-    : ([ \t\u000C\r\n]+ | ('\\' [^\n]*)) -> skip
+    : [ \t\r\n]+ -> skip
+    ;
+LINE_COMMENT
+    : '//' ~[\r\n]* -> skip
     ;
