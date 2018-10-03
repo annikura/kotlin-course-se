@@ -1,6 +1,7 @@
 package ru.hse.spb
 
 import java.io.OutputStream
+import java.lang.Exception
 
 class Context {
     private val parentContext: Context?
@@ -8,7 +9,10 @@ class Context {
     private val functions = mutableMapOf<String, Function>()
     private val stream: OutputStream
     var value: Int? = null
-        set(value) = if (field != null) error("Attempting to reset value while context is complete.") else field = value
+        set(value) =
+            if (field != null)
+                throw ContextException("Attempting to reset value while context is complete.")
+            else field = value
 
     constructor(stream: OutputStream) {
         parentContext = null
@@ -30,14 +34,14 @@ class Context {
 
     fun newVariable(identifier: String, value: Int = 0) {
         if (variables.containsKey(identifier)) {
-            error("Attempting to redeclare existing variable.")
+            throw ContextException("Attempting to redeclare existing variable.")
         }
         variables[identifier] = value
     }
 
     fun newFunction(identifier: String, function: Function) {
         if (functions.containsKey(identifier)) {
-            error("Attempting to redeclare existing function.")
+            throw ContextException("Attempting to redeclare existing function.")
         }
         functions[identifier] = function
     }
@@ -46,7 +50,8 @@ class Context {
         if (variables.containsKey(identifier)) {
             variables[identifier] = value
         } else {
-            parentContext?.updateVariable(identifier, value) ?: error("Attempting to access variable out of scope.")
+            parentContext?.updateVariable(identifier, value)
+                    ?: throw ContextException("Attempting to access variable out of scope.")
         }
     }
 
@@ -61,3 +66,5 @@ class Context {
         stream.write("\n".toByteArray())
     }
 }
+
+class ContextException(override var message: String) : Exception(message)

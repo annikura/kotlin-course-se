@@ -1,5 +1,7 @@
 package ru.hse.spb
 
+import java.lang.Exception
+
 interface AstNode
 
 interface Executable : AstNode {
@@ -86,7 +88,8 @@ data class FunctionCall(
             context.println(values)
             return 0
         }
-        val function = context.getFunction(identifier) ?: error("$line::Attempting to call unknown function: $identifier")
+        val function = context.getFunction(identifier)
+                ?: throw ExecutionException("$line::Attempting to call unknown function: $identifier")
         return function.block.exec(
                 function.createFunctionSubcontext(context, values)) ?: 0
     }
@@ -100,15 +103,15 @@ data class Function(
     override fun exec(context: Context): Int? {
         try {
             context.newFunction(name, this)
-        } catch (e: IllegalStateException) {
-            error("$line::${e.message}")
+        } catch (e: ContextException) {
+            throw ExecutionException("$line::${e.message}")
         }
         return null
     }
 
     fun createFunctionSubcontext(context: Context, values: List<Int>) : Context {
         if (values.size != args.size) {
-            error("$line::Expected arguments: ${args.size}, actual: ${values.size}.")
+            throw ExecutionException("$line::Expected arguments: ${args.size}, actual: ${values.size}.")
         }
         val newContext = context.createSubcontext()
         for (i in 0 until args.size) {
@@ -136,8 +139,8 @@ data class Assignment(
         val value = expression.exec(context)
         try {
             context.updateVariable(identifier, value)
-        } catch (e: IllegalStateException) {
-            error("$line::${e.message}")
+        } catch (e: ContextException) {
+            throw ExecutionException("$line::${e.message}")
         }
         return value
     }
@@ -151,8 +154,8 @@ data class VariableDeclaration(
         val value = expression?.exec(context) ?: 0
         try {
             context.newVariable(identifier, value)
-        } catch (e: IllegalStateException) {
-            error("$line::${e.message}")
+        } catch (e: ContextException) {
+            throw ExecutionException("$line::${e.message}")
         }
         return value
     }
@@ -181,7 +184,7 @@ data class While(private val condition: Expression, private val block: Block) :E
 data class Variable(override val line: Int, private val name: String) : Executable, ErrorProne {
     override fun exec(context: Context): Int {
         return context.getVariable(name)
-                ?: error("$line::Attempting to access variable which doesn't exist: $name")
+                ?: throw ExecutionException("$line::Attempting to access variable which doesn't exist: $name")
     }
 }
 
@@ -206,3 +209,5 @@ enum class BinaryOperator {
         eval = expression
     }
 }
+
+class ExecutionException(override var message: String) : Exception(message)

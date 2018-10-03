@@ -3,7 +3,6 @@ package ru.hse.spb
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.ByteArrayOutputStream
-import java.lang.IllegalStateException
 
 class TestSource {
     @Test
@@ -133,12 +132,12 @@ class TestSource {
                         Expression(1))))))
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test(expected = ParsingException::class)
     fun parserError() {
         parseFunLanguageFile("fun f(a + b) {}")
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test(expected = ParsingException::class)
     fun lexerError() {
         parseFunLanguageFile(";'//.")
     }
@@ -269,37 +268,37 @@ class TestSource {
         assertEquals("1 \n", stringStream.toString())
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test(expected = ExecutionException::class)
     fun executing_unknownVariable() {
         val stringStream = ByteArrayOutputStream()
         parseFunLanguageFile("a").exec(Context(stringStream))
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test(expected = ExecutionException::class)
     fun executing_unknownFunction() {
         val stringStream = ByteArrayOutputStream()
         parseFunLanguageFile("a()").exec(Context(stringStream))
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test(expected = ExecutionException::class)
     fun executing_assignUnknownVariable() {
         val stringStream = ByteArrayOutputStream()
         parseFunLanguageFile("a = 5").exec(Context(stringStream))
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test(expected = ExecutionException::class)
     fun executing_redeclareExistingVariable() {
         val stringStream = ByteArrayOutputStream()
         parseFunLanguageFile("var a\nvar a").exec(Context(stringStream))
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test(expected = ExecutionException::class)
     fun executing_redeclareExistingFunction() {
         val stringStream = ByteArrayOutputStream()
         parseFunLanguageFile("fun a() {}\nfun a() {}").exec(Context(stringStream))
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test(expected = ExecutionException::class)
     fun executing_functionCallArgumentsNumberMismatch() {
         val stringStream = ByteArrayOutputStream()
         parseFunLanguageFile("fun a(x, y) {}\n a(1, 2, 3)").exec(Context(stringStream))

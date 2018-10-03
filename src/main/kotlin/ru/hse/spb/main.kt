@@ -3,6 +3,7 @@ package ru.hse.spb
 import org.antlr.v4.runtime.*
 import ru.hse.spb.parser.FunLanguageLexer
 import ru.hse.spb.parser.FunLanguageParser
+import java.lang.Exception
 
 fun main(args: Array<String>) {
     println(parseFunLanguageFile("println(5)").exec(Context(System.`out`)))
@@ -14,7 +15,7 @@ class LexerErrorListener : BaseErrorListener() {
             offendingSymbol: Any?, line: Int,
             charPositionInLine: Int, msg: String?,
             e: RecognitionException?) {
-        error("$line::lexer error")
+        throw ParsingException("$line::lexer error")
     }
 }
 
@@ -26,9 +27,11 @@ class ParserErrorListener : BaseErrorListener() {
             charPositionInLine: Int,
             msg: String?,
             e: RecognitionException?) {
-        error("$line::parser error")
+        throw ParsingException("$line::parser error")
     }
 }
+
+class ParsingException(override var message: String) : Exception(message)
 
 fun parseFunLanguageFile(funCode: String) : File {
     val funLanguageLexer = FunLanguageLexer(CharStreams.fromString(funCode))
