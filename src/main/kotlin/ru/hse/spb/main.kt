@@ -3,10 +3,13 @@ package ru.hse.spb
 import org.antlr.v4.runtime.*
 import ru.hse.spb.parser.FunLanguageLexer
 import ru.hse.spb.parser.FunLanguageParser
-import java.lang.Exception
 
 fun main(args: Array<String>) {
-    println(parseFunLanguageFile("println(5)").exec(Context(System.`out`)))
+    if (args.isEmpty()) {
+        println("Filename was expected as an argument, but ${args.size} arguments were found.")
+        return
+    }
+    println(parseFunLanguageFile(CharStreams.fromFileName(args[0]).toString()).exec(Context(System.`out`)))
 }
 
 class LexerErrorListener : BaseErrorListener() {
