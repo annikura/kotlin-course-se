@@ -34,7 +34,7 @@ data class Statement(val executable: Executable) : Executable {
     }
 }
 
-data class Expression private constructor(
+data class Expression constructor(
         private val expressionType: ExpressionType,
         private val literal: Int? = null,
         private val firstExp: Expression? = null,
@@ -43,7 +43,7 @@ data class Expression private constructor(
         private val variable: Variable? = null,
         private val functionCall: FunctionCall? = null) : Executable {
     companion object {
-        private enum class ExpressionType {
+        enum class ExpressionType {
             LITERAL,
             BINARY_EXPRESSION,
             VARIABLE,
@@ -76,7 +76,10 @@ data class Expression private constructor(
             : this(ExpressionType.FUNCTION_CALL, functionCall = functionCall)
 }
 
-data class FunctionCall(override val line: Int, private val identifier: String, private val args: List<Expression>) : Executable, ErrorProne {
+data class FunctionCall(
+        override val line: Int,
+        private val identifier: String,
+        private val args: List<Expression>) : Executable, ErrorProne {
     override fun exec(context: Context): Int {
         val values = args.map { exp: Expression -> exp.exec(context) }
         if (identifier == "println" && context.getFunction(identifier) == null) {
@@ -89,7 +92,11 @@ data class FunctionCall(override val line: Int, private val identifier: String, 
     }
 }
 
-data class Function(override val line: Int, private val name: String, val block: Block, private val args: List<String>) : Executable, ErrorProne {
+data class Function(
+        override val line: Int,
+        private val name: String,
+        val block: Block,
+        private val args: List<String>) : Executable, ErrorProne {
     override fun exec(context: Context): Int? {
         try {
             context.newFunction(name, this)
@@ -121,7 +128,10 @@ data class If(private val condition: Expression, private val ifBlock: Block, pri
     }
 }
 
-data class Assignment(override val line: Int, private val identifier: String, private val expression: Expression) : Executable, ErrorProne {
+data class Assignment(
+        override val line: Int,
+        private val identifier: String,
+        private val expression: Expression) : Executable, ErrorProne {
     override fun exec(context: Context): Int? {
         val value = expression.exec(context)
         try {
@@ -133,7 +143,10 @@ data class Assignment(override val line: Int, private val identifier: String, pr
     }
 }
 
-data class VariableDeclaration(override val line: Int, val identifier: String, private val expression: Expression? = null) : Executable, ErrorProne {
+data class VariableDeclaration(
+        override val line: Int,
+        val identifier: String,
+        private val expression: Expression? = null) : Executable, ErrorProne {
     override fun exec(context: Context): Int {
         val value = expression?.exec(context) ?: 0
         try {
