@@ -35,27 +35,20 @@ class FunLanguageVisitor : FunLanguageBaseVisitor<AstNode>() {
         return Assignment(ctx.start.line, ctx.IDENTIFIER().text, ctx.exp.accept(this) as Expression)
     }
 
-    override fun visitExpression(ctx: FunLanguageParser.ExpressionContext): Expression {
-        if (ctx.exp != null) {
-            return ctx.exp.accept(this) as Expression
-        }
-        if (ctx.firstExp != null && ctx.secondExp != null) {
-            return Expression.createBinaryExpression(
-                    ctx.firstExp.accept(this) as Expression,
-                    getOperator(ctx.op.text),
-                    ctx.secondExp.accept(this) as Expression)
-        }
-        if (ctx.func != null) {
-            return Expression.createFunctionCallExpression(ctx.func.accept(this) as FunctionCall)
-        }
-        if (ctx.num != null) {
-            return Expression.createLiteralExpression(ctx.num.text.toInt())
-        }
-        if (ctx.id != null) {
-            return Expression.createVariableExpression(Variable(ctx.id.line, ctx.id.text))
-        }
-        error("${ctx.start.line}Unknown expression type")
-    }
+    override fun visitExpression(ctx: FunLanguageParser.ExpressionContext): Expression =
+            when {
+                ctx.exp != null  -> ctx.exp.accept(this) as Expression
+                ctx.firstExp != null && ctx.secondExp != null
+                                 -> Expression.createBinaryExpression(
+                        ctx.firstExp.accept(this) as Expression,
+                        getOperator(ctx.op.text),
+                        ctx.secondExp.accept(this) as Expression)
+                ctx.func != null -> Expression.createFunctionCallExpression(ctx.func.accept(this) as FunctionCall)
+                ctx.num != null  -> Expression.createLiteralExpression(ctx.num.text.toInt())
+                ctx.id != null   -> Expression.createVariableExpression(Variable(ctx.id.line, ctx.id.text))
+                else             -> error("${ctx.start.line}Unknown expression type")
+            }
+
 
     override fun visitIfStatement(ctx: FunLanguageParser.IfStatementContext): If {
         return If(
@@ -68,30 +61,17 @@ class FunLanguageVisitor : FunLanguageBaseVisitor<AstNode>() {
         return Return(ctx.exp.accept(this) as Expression)
     }
 
-    override fun visitStatement(ctx: FunLanguageParser.StatementContext): Statement {
-        if (ctx.assign != null) {
-            return Statement(ctx.assign.accept(this) as Assignment)
-        }
-        if (ctx.branch != null) {
-            return Statement(ctx.branch.accept(this) as If)
-        }
-        if (ctx.`var` != null) {
-            return Statement(ctx.`var`.accept(this) as VariableDeclaration)
-        }
-        if (ctx.exp != null) {
-            return Statement(ctx.exp.accept(this) as Expression)
-        }
-        if (ctx.func != null) {
-            return Statement(ctx.function().accept(this) as Function)
-        }
-        if (ctx.loop != null) {
-            return Statement(ctx.loop.accept(this) as While)
-        }
-        if (ctx.ret != null) {
-            return Statement(ctx.ret.accept(this) as Return)
-        }
-        error("${ctx.start.line}::Unknown statement type")
-    }
+    override fun visitStatement(ctx: FunLanguageParser.StatementContext) =
+            when {
+                ctx.assign != null -> Statement(ctx.assign.accept(this) as Assignment)
+                ctx.branch != null -> Statement(ctx.branch.accept(this) as If)
+                ctx.`var`  != null -> Statement(ctx.`var`.accept(this) as VariableDeclaration)
+                ctx.exp    != null -> Statement(ctx.exp.accept(this) as Expression)
+                ctx.func   != null -> Statement(ctx.function().accept(this) as Function)
+                ctx.loop   != null -> Statement(ctx.loop.accept(this) as While)
+                ctx.ret    != null -> Statement(ctx.ret.accept(this) as Return)
+                else               -> error("${ctx.start.line}::Unknown statement type")
+            }
 
     override fun visitVariableDeclaration(ctx: FunLanguageParser.VariableDeclarationContext): VariableDeclaration {
         return VariableDeclaration(
