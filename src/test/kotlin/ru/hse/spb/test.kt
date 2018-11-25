@@ -23,21 +23,22 @@ class TestSource {
                                 VariableDeclaration(
                                         1,
                                         "variable",
-                                        Expression(10)))))))
+                                        Expression.createLiteralExpression(10)))))))
     }
 
     @Test
     fun parsing_assignment() {
         assertEquals(
                 parseFunLanguageFile("a = 10"),
-                File(Block(listOf(Statement(Assignment(1, "a", Expression(10)))))))
+                File(Block(listOf(Statement(Assignment(1, "a",
+                        Expression.createLiteralExpression(10)))))))
     }
 
     @Test
     fun parsing_return() {
         assertEquals(
                 parseFunLanguageFile("return 1"),
-                File(Block(listOf(Statement(Return(Expression(1)))))))
+                File(Block(listOf(Statement(Return(Expression.createLiteralExpression(1)))))))
     }
 
     @Test
@@ -54,17 +55,20 @@ class TestSource {
         assertEquals(
                 parseFunLanguageFile("func(a, b)"),
                 File(Block(listOf(Statement(
-                        Expression(FunctionCall(1, "func",
+                        Expression.createFunctionCallExpression(FunctionCall(1, "func",
                                 listOf(
-                                        Expression(Variable(1, "a")),
-                                        Expression(Variable(1, "b"))))))))))
+                                        Expression.createVariableExpression(Variable(1, "a")),
+                                        Expression.createVariableExpression(Variable(1, "b"))))))))))
     }
 
     @Test
     fun parsing_simpleIf() {
         assertEquals(
                 parseFunLanguageFile("if (1) {}"),
-                File(Block(listOf(Statement(If(Expression(1), Block(emptyList()), null))))))
+                File(Block(listOf(Statement(If(
+                        Expression.createLiteralExpression(1),
+                        Block(emptyList()),
+                        null))))))
     }
 
     @Test
@@ -72,7 +76,7 @@ class TestSource {
         assertEquals(
                 parseFunLanguageFile("if (a) {} else {}"),
                 File(Block(listOf(Statement(
-                        If(Expression(Variable(1, "a")),
+                        If(Expression.createVariableExpression(Variable(1, "a")),
                                 /*  if block  */ Block(emptyList()),
                                 /* else block */ Block(emptyList())))))))
     }
@@ -82,7 +86,7 @@ class TestSource {
         assertEquals(
                 parseFunLanguageFile("while (a) {} "),
                 File(Block(listOf(Statement(
-                        While(Expression(Variable(1, "a")),
+                        While(Expression.createVariableExpression(Variable(1, "a")),
                                 /* while block */ Block(emptyList())))))))
     }
 
@@ -91,10 +95,10 @@ class TestSource {
         assertEquals(
                 parseFunLanguageFile("a + b"),
                 File(Block(listOf(Statement(
-                        Expression(
-                                Expression(Variable(1, "a")),
+                        Expression.createBinaryExpression(
+                                Expression.createVariableExpression(Variable(1, "a")),
                                 BinaryOperator.PLUS,
-                                Expression(Variable(1, "b"))))))))
+                                Expression.createVariableExpression(Variable(1, "b"))))))))
     }
 
     @Test
@@ -102,7 +106,7 @@ class TestSource {
         assertEquals(
                 parseFunLanguageFile("a"),
                 File(Block(listOf(Statement(
-                        Expression(Variable(1, "a")))))))
+                        Expression.createVariableExpression(Variable(1, "a")))))))
     }
 
     @Test
@@ -110,10 +114,10 @@ class TestSource {
         assertEquals(
                 parseFunLanguageFile("a + 2"),
                 File(Block(listOf(Statement(
-                        Expression(
-                                Expression(Variable(1, "a")),
+                        Expression.createBinaryExpression(
+                                Expression.createVariableExpression(Variable(1, "a")),
                                 BinaryOperator.PLUS,
-                                Expression(2)))))))
+                                Expression.createLiteralExpression(2)))))))
     }
 
     @Test
@@ -121,7 +125,7 @@ class TestSource {
         assertEquals(
                 parseFunLanguageFile("(1)"),
                 File(Block(listOf(Statement(
-                        Expression(1))))))
+                        Expression.createLiteralExpression(1))))))
     }
 
     @Test
@@ -129,7 +133,7 @@ class TestSource {
         assertEquals(
                 parseFunLanguageFile("1"),
                 File(Block(listOf(Statement(
-                        Expression(1))))))
+                        Expression.createLiteralExpression(1))))))
     }
 
     @Test(expected = ParsingException::class)

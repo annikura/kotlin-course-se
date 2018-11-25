@@ -40,19 +40,19 @@ class FunLanguageVisitor : FunLanguageBaseVisitor<AstNode>() {
             return ctx.exp.accept(this) as Expression
         }
         if (ctx.firstExp != null && ctx.secondExp != null) {
-            return Expression(
+            return Expression.createBinaryExpression(
                     ctx.firstExp.accept(this) as Expression,
                     getOperator(ctx.op.text),
                     ctx.secondExp.accept(this) as Expression)
         }
         if (ctx.func != null) {
-            return Expression(ctx.func.accept(this) as FunctionCall)
+            return Expression.createFunctionCallExpression(ctx.func.accept(this) as FunctionCall)
         }
         if (ctx.num != null) {
-            return Expression(ctx.num.text.toInt())
+            return Expression.createLiteralExpression(ctx.num.text.toInt())
         }
         if (ctx.id != null) {
-            return Expression(Variable(ctx.id.line, ctx.id.text))
+            return Expression.createVariableExpression(Variable(ctx.id.line, ctx.id.text))
         }
         error("${ctx.start.line}Unknown expression type")
     }

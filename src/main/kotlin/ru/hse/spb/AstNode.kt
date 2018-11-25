@@ -36,47 +36,52 @@ data class Statement(val executable: Executable) : Executable {
     }
 }
 
-data class Expression constructor(
-    private val expressionType: ExpressionType,
-    private val literal: Int? = null,
-    private val firstExp: Expression? = null,
-    private val operator: BinaryOperator? = null,
-    private val secondExpression: Expression? = null,
-    private val variable: Variable? = null,
-    private val functionCall: FunctionCall? = null
-) : Executable {
+data class Expression private constructor(private val container: ExpressionContainer) : Executable {
     companion object {
+        private data class ExpressionContainer(
+                val expressionType: ExpressionType,
+                val literal: Int? = null,
+                val firstExp: Expression? = null,
+                val operator: BinaryOperator? = null,
+                val secondExpression: Expression? = null,
+                val variable: Variable? = null,
+                val functionCall: FunctionCall? = null)
+
         enum class ExpressionType {
             LITERAL,
             BINARY_EXPRESSION,
             VARIABLE,
             FUNCTION_CALL
         }
+
+        fun createLiteralExpression(literal: Int) =
+                Expression(ExpressionContainer(ExpressionType.LITERAL, literal = literal))
+        fun createBinaryExpression(firstExp: Expression, operator: BinaryOperator, secondExpression: Expression) =
+                Expression(ExpressionContainer(
+                        ExpressionType.BINARY_EXPRESSION,
+                        firstExp = firstExp,
+                        operator = operator,
+                        secondExpression = secondExpression))
+        fun createVariableExpression(variable: Variable) =
+                Expression(ExpressionContainer(ExpressionType.VARIABLE, variable = variable))
+        fun createFunctionCallExpression(functionCall: FunctionCall) =
+                Expression(ExpressionContainer(ExpressionType.FUNCTION_CALL, functionCall = functionCall))
     }
 
     override fun exec(context: Context): Int {
-        return when (expressionType) {
-            ExpressionType.LITERAL -> literal
-            ExpressionType.FUNCTION_CALL -> functionCall?.exec(context)
-            ExpressionType.VARIABLE -> variable?.exec(context)
+        return when (container.expressionType) {
+            ExpressionType.LITERAL -> container.literal
+            ExpressionType.FUNCTION_CALL -> container.functionCall?.exec(context)
+            ExpressionType.VARIABLE -> container.variable?.exec(context)
             ExpressionType.BINARY_EXPRESSION ->
-                if (firstExp != null && secondExpression != null)
-                    operator?.eval?.invoke(firstExp.exec(context), secondExpression.exec(context))
+                if (container.firstExp != null && container.secondExpression != null)
+                    container.operator?.eval?.invoke(
+                            container.firstExp.exec(context),
+                            container.secondExpression.exec(context))
                 else null
-        } ?: error("Expression failure: expected fields appeared to be null. Expression type: $expressionType")
+        } ?: error(
+                "Expression failure: expected fields appeared to be null. Expression type: ${container.expressionType}")
     }
-
-    constructor(literal: Int) : this(ExpressionType.LITERAL, literal = literal)
-    constructor(firstExp: Expression, operator: BinaryOperator, secondExpression: Expression)
-            : this(
-                ExpressionType.BINARY_EXPRESSION,
-                firstExp = firstExp,
-                operator = operator,
-                secondExpression = secondExpression)
-    constructor(variable: Variable)
-            : this(ExpressionType.VARIABLE, variable = variable)
-    constructor(functionCall: FunctionCall)
-            : this(ExpressionType.FUNCTION_CALL, functionCall = functionCall)
 }
 
 data class FunctionCall(
