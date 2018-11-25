@@ -3,26 +3,16 @@ package ru.hse.spb
 import java.io.OutputStream
 import java.lang.Exception
 
-class Context {
-    private val parentContext: Context?
+class Context(private val stream: OutputStream, private val parentContext: Context? = null) {
+    constructor(parent: Context) : this(parent.stream, parent)
+
     private val variables = mutableMapOf<String, Int>()
     private val functions = mutableMapOf<String, Function>()
-    private val stream: OutputStream
     var value: Int? = null
         set(value) =
             if (field != null)
                 throw ContextException("Attempting to reset value while context is complete.")
             else field = value
-
-    constructor(stream: OutputStream) {
-        parentContext = null
-        this.stream = stream
-    }
-
-    constructor(parent: Context) {
-        parentContext = parent
-        stream = parent.stream
-    }
 
     fun getVariable(identifier: String): Int? {
         return variables[identifier] ?: parentContext?.getVariable(identifier)
@@ -33,21 +23,21 @@ class Context {
     }
 
     fun newVariable(identifier: String, value: Int = 0) {
-        if (variables.containsKey(identifier)) {
+        if (identifier in variables) {
             throw ContextException("Attempting to redeclare existing variable.")
         }
         variables[identifier] = value
     }
 
     fun newFunction(identifier: String, function: Function) {
-        if (functions.containsKey(identifier)) {
+        if (identifier in functions) {
             throw ContextException("Attempting to redeclare existing function.")
         }
         functions[identifier] = function
     }
 
     fun updateVariable(identifier: String, value: Int) {
-        if (variables.containsKey(identifier)) {
+        if (identifier in variables) {
             variables[identifier] = value
         } else {
             parentContext?.updateVariable(identifier, value)
