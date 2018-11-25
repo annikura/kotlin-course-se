@@ -10,6 +10,13 @@ interface Executable : AstNode {
 
 interface ErrorProne : AstNode {
     val line: Int
+    fun contextAware(f: () -> Int?): Int? {
+        try {
+            return f()
+        } catch (e: ContextException) {
+            throw ExecutionException("$line::${e.message}")
+        }
+    }
 }
 
 data class File(val block: Block) : Executable {
@@ -108,13 +115,9 @@ data class Function(
     val block: Block,
     private val args: List<String>
 ) : Executable, ErrorProne {
-    override fun exec(context: Context): Int? {
-        try {
-            context.newFunction(name, this)
-        } catch (e: ContextException) {
-            throw ExecutionException("$line::${e.message}")
-        }
-        return null
+    override fun exec(context: Context): Int? = contextAware {
+        context.newFunction(name, this)
+        null
     }
 
     fun createFunctionSubcontext(context: Context, values: List<Int>): Context {
@@ -144,14 +147,10 @@ data class Assignment(
     private val identifier: String,
     private val expression: Expression
 ) : Executable, ErrorProne {
-    override fun exec(context: Context): Int? {
+    override fun exec(context: Context): Int? = contextAware {
         val value = expression.exec(context)
-        try {
-            context.updateVariable(identifier, value)
-        } catch (e: ContextException) {
-            throw ExecutionException("$line::${e.message}")
-        }
-        return value
+        context.updateVariable(identifier, value)
+        value
     }
 }
 
@@ -160,15 +159,11 @@ data class VariableDeclaration(
     val identifier: String,
     private val expression: Expression? = null
 ) : Executable, ErrorProne {
-    override fun exec(context: Context): Int {
+    override fun exec(context: Context): Int = contextAware {
         val value = expression?.exec(context) ?: 0
-        try {
-            context.newVariable(identifier, value)
-        } catch (e: ContextException) {
-            throw ExecutionException("$line::${e.message}")
-        }
-        return value
-    }
+        context.newVariable(identifier, value)
+        value
+    }!!
 }
 
 data class Return(private val expression: Expression) : Executable {
