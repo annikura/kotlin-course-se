@@ -198,26 +198,22 @@ data class Variable(override val line: Int, private val name: String) : Executab
     }
 }
 
-enum class BinaryOperator {
+fun Boolean.asInt() = if (this) 1 else 0
+
+enum class BinaryOperator(val eval: (Int, Int) -> Int) {
     MUL({ a, b -> a * b }),
     DIV({ a, b -> a / b }),
     MOD({ a, b -> a % b }),
     PLUS({ a, b -> a + b }),
     MINUS({ a, b -> a - b }),
-    LESS_THAN({ a, b -> if (a < b) 1 else 0 }),
-    GREATER_THAN({ a, b -> if (a > b) 1 else 0 }),
-    LE({ a, b -> if (a <= b) 1 else 0 }),
-    GE({ a, b -> if (a >= b) 1 else 0 }),
-    EQ({ a, b -> if (a == b) 1 else 0 }),
-    NEQ({ a, b -> if (a != b) 1 else 0 }),
-    AND({ a, b -> if (a != 0 && b != 0) 1 else 0 }),
-    OR({ a, b -> if (a != 0 || b != 0) 1 else 0 });
-
-    val eval: (Int, Int) -> Int
-
-    constructor(expression: (Int, Int) -> Int) {
-        eval = expression
-    }
+    LESS_THAN({ a, b -> (a < b).asInt() }),
+    GREATER_THAN({ a, b -> (a > b).asInt() }),
+    LE({ a, b -> (a <= b).asInt() }),
+    GE({ a, b -> (a >= b).asInt() }),
+    EQ({ a, b -> (a == b).asInt() }),
+    NEQ({ a, b -> (a != b).asInt() }),
+    AND({ a, b -> (a != 0 && b != 0).asInt() }),
+    OR({ a, b -> (a != 0 || b != 0).asInt() });
 }
 
 class ExecutionException(override var message: String) : Exception(message)
