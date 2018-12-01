@@ -17,7 +17,7 @@ interface Code : Element
 @DslMarker
 annotation class TexTagMarker
 
-class TextElement(val text: String) : Code {
+class TextElement(private val text: String) : Code {
     override fun render(out: OutputStream, indent: String) {
         out.write("$indent$text\n".toByteArray())
     }
@@ -31,8 +31,9 @@ abstract class TagWithText(name: String) : Tag(name) {
 
 @TexTagMarker
 abstract class Tag(open val name: String) : Element {
-    val indentStep
-        get() = "    "
+    companion object {
+        const val indentStep = "    "
+    }
 
     val children = arrayListOf<Code>()
     val parameters = arrayListOf<String>()
@@ -44,9 +45,7 @@ abstract class Tag(open val name: String) : Element {
     }
 
     protected fun renderParameters(): String {
-        if (parameters.size == 0)
-            return ""
-        return parameters.joinToString(separator = ", ", prefix = "[", postfix = "]")
+        return if (parameters.isEmpty()) "" else parameters.joinToString(separator = ", ", prefix = "[", postfix = "]")
     }
 
     fun customTag(
@@ -95,7 +94,7 @@ abstract class BeginEndCommand(override val name: String, vararg properties: Str
         out.write("$indent\\end{$name}\n".toByteArray())
     }
     init {
-        properties.forEach { parameters.add(it) }
+        parameters += properties
     }
 }
 
@@ -173,9 +172,7 @@ class Document : BeginEndCommand("document") {
 }
 
 fun document(init: Document.() -> Unit): Document {
-    val document = Document()
-    document.init()
-    return document
+    return Document().apply(init)
 }
 
 class TexCompilationException(override val message: String?) : Exception(message)
